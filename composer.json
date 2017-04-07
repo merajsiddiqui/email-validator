@@ -1,0 +1,21 @@
+{
+    "name": "merajsiddiqui/email-validator",
+    "description": "A package to verify if the email exist or not without sending email",
+    "keywords": ["verify email","php email validator", "email validate  without sending email"],
+    "authors": [
+        {
+            "name": "Meraj Ahmad Siddiqui",
+            "email": "merajsiddiqui@outlook.com"
+        }
+    ],
+    "license": "GNU General Public License v3.0",
+    "require-dev" : {
+        "phpunit/phpunit" :"5.5.*",
+        "xicrow/php-debug" :"^2.0"
+    },
+    "autoload" : {
+        "psr-4" : {
+            "Email\\" :"src/"
+        }
+    }
+}
