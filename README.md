@@ -8,11 +8,11 @@ This email-validator library is to verify if a given email id exists or not with
 
 ### Prerequisites
 
+
+```
 PHP > 5.5
 getmmxr
 
-```
-Give examples
 ```
 
 ### Installing
