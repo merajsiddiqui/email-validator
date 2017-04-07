@@ -103,7 +103,7 @@ class Validator {
 		$result["email"] = $email;
 		$result["domain"] = explode("@", $email)[1];
 		if ($this->validateDomainRegex($result["domain"])) {
-			//$result["valid"] = $this->validateEmailSMTP($email);
+			$result["valid"] = $this->validateEmailSMTP($email);
 			if ($result["valid"]) {
 				$this->valid_emails[] = $email;
 				$result["message"] = "Valid email Address";

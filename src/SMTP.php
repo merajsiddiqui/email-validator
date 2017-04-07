@@ -131,17 +131,8 @@ class SMTP {
 			$email_valid = (in_array($rcpt_response_code, $acceptence_codes)) ? true : false;
 			fwrite($this->socket, "quit");
 			fclose($this->socket);
-
 			var_dump($email_valid);
 			return $email_valid;
 		}
 	}
 }
-
-//Test
-
-$email = "merajsiddiqui@outlook.com";
-
-$abc = new SMTP();
-$ab = $abc->validate($email);
-var_dump($ab);
