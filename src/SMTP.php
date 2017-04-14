@@ -21,7 +21,7 @@ class SMTP {
 	 * Public IP address of your current server
 	 * @var string
 	 */
-	private $host = "localhost";
+	private $sender = "webmaster@emailvalidator.com";
 
 	/**
 	 * Domain on which email is hosted
@@ -63,98 +63,107 @@ class SMTP {
 	 * Set debug mode as true to debug the response
 	 * @var boolean
 	 */
-	public $debug_mode = true;
+	public $debug_mode;
 
-	public function validate($email_id) {
+	public function validate($email_id, $debug_mode = false) {
 		if ($email_id) {
+			$this->debug_mode = $debug_mode;
 			$this->email = $email_id;
 			$this->domain = explode("@", $email_id)[1];
 			$this->queryMXRecords();
-			return $this->communicateThroughSocket();
+			$validation = $this->communicateThroughSocket();
+			if ($this->debug_mode) {
+				echo "\n Email address : " . $this->email . " : \t $validation";
+			}
+			return $validation;
 		} else {
 			throw new \Exception("Email id expected", 1);
 		}
 	}
 
-	protected function queryMXRecords() {
+	public function queryMXRecords($domain = false) {
+		if ($domain) {
+			$this->domain = $domain;
+		}
 		$mx_host = [];
 		$mx_priority = [];
 		if (function_exists("getmxrr")) {
 			getmxrr($this->domain, $mx_host, $mx_priority);
-			if ($this->debug_mode) {
-				print_r($mx_host);
-				print_r($mx_priority);
-			}
 		} else {
-			//do something
+			throw new \Exception("getmxrr not found .. check your php module", 1);
 		}
 		for ($i = 0; $i < count($mx_host); $i++) {
 			$this->mx_records[$i]['host'] = $mx_host[$i];
 			$this->mx_records[$i]['priority'] = $mx_priority[$i];
 		}
-		$this->mx_records[$i]['host'] = $this->domain;
+		//sorting on the basis of priority
+		$priority = array();
+		foreach ($this->mx_records as $key => $record) {
+			$priority[$key] = $record['priority'];
+		}
+		array_multisort($priority, SORT_ASC, $this->mx_records);
+		if ($this->debug_mode) {
+			echo "\n MX Records for mail exchange \n";
+			print_r(json_encode($this->mx_records, JSON_PRETTY_PRINT));
+		}
 	}
 	/**
 	 * This method will communicate to the server mx record and find out email
 	 * @return bool true or false on basis of email exist or not
 	 */
 	protected function communicateThroughSocket() {
+		$email_valid = false;
 		$acceptence_codes = [250, 451, 452];
 		//Starting socket connection to read
 		$mx_count = 0;
-		while (isset($this->mx_records[$mx_count])) {
-			$this->socket = fsockopen(
+		while ($this->mx_records[$mx_count]) {
+			$mx_count++;
+			if ($this->debug_mode) {
+				echo "\n Connecting to : \t " . $this->mx_records[$mx_count]['host'] . ":" . $this->port;
+			}
+			if ($this->socket = fsockopen(
 				$this->mx_records[$mx_count]['host'],
 				$this->port,
 				$err_code,
 				$err_message,
 				(float) $this->connection_timeout
-			);
-			var_dump($err_code);
-			stream_set_timeout($this->socket, $this->read_timeout);
-			break;
-			$mx_count++;
+			)) {
+				stream_set_timeout($this->socket, $this->read_timeout);
+				break;
+			}
 		}
 		//Reading response from socket
 		if ($this->socket) {
 			$reply_message = fread($this->socket, 2082);
+			if ($this->debug_mode) {
+				echo "\n Reply: \t $reply_message \n";
+			}
 			//parse response code from reply message
 			preg_match('/^([0-9]{3})/ims', $reply_message, $matches);
-			$response_code = isset($matches[1]) ? (int) $matches[1] : 0;
+			$response_code = isset($matches[1]) ? $matches[1] : 0;
 			if ($response_code != 220) {
 				$email_valid = false;
 			}
 			//communicate send message to server
-			$my_address = $this->host;
-			$sender = "webmaster@$my_address";
-			$this->SendMessage("HELO $my_address");
-			$this->SendMessage("MAIL FROM: <$sender>");
-			$reply = $this->SendMessage("RCPT TO: <$sender>");
-			var_dump($reply);
+			$this->SendMessage("HELO " . explode("@", $this->sender)[1]);
+			$this->SendMessage("MAIL FROM: <" . $this->sender . ">");
+			$reply = $this->SendMessage("RCPT TO: <" . $this->email . ">");
 			//parse response code from reply message
 			preg_match('/^([0-9]{3})/ims', $reply, $matches);
 			$rcpt_response_code = isset($matches[1]) ? (int) $matches[1] : 0;
 			$email_valid = (in_array($rcpt_response_code, $acceptence_codes)) ? true : false;
 			$this->SendMessage("quit");
 			fclose($this->socket);
-			return $email_valid;
 		}
+		return $email_valid;
 	}
 
 	public function SendMessage($message) {
-		fwrite($this->socket, $message);
+		fwrite($this->socket, $message . "\r\n");
 		$reply_message = fread($this->socket, 2082);
 		if ($this->debug_mode) {
-			echo "Send: \t $message \n Rply: \t $reply_message";
+			echo "\n Send: \t $message \n Reply: \t $reply_message";
 		}
 		return $reply_message;
 	}
 }
-
-//Test
-
-$email = "meraj.siddiqui@rankwatch.com";
-
-$abc = new SMTP();
-$ab = $abc->validate($email);
-var_dump($ab);
