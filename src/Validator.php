@@ -26,17 +26,18 @@ class Validator {
 	 * @param  string/array $emails It can take a single or multiple email ids
 	 * @return array         Email validation result
 	 */
-	public function validate($emails) {
+	public function validate($emails, $debug_mode = false) {
 		if ($emails) {
+			$this->debug_mode = $debug_mode;
 			$this->email = $emails;
 			if (is_array($emails)) {
 				$validation_result = [];
 				foreach ($emails as $email) {
-					$validation_result[] = $this->startValidation($email);
+					$validation_result[] = $this->startValidation($email, $debug_mode);
 				}
 				return $validation_result;
 			} elseif (is_string($emails)) {
-				$validation_result = $this->startValidation($emails);
+				$validation_result = $this->startValidation($emails, $debug_mode);
 				return $validation_result;
 			} else {
 				throw new \Exception("a single email id or array of email is  accepted ", 1);
@@ -82,9 +83,9 @@ class Validator {
 		return (preg_match($regex, $domain_url)) ? true : false;
 	}
 
-	public function validateEmailSMTP($email) {
-		$smtp = new SMTP($email);
-		$result = $smtp->validate();
+	public function validateEmailSMTP($email, $debug_mode) {
+		$smtp = new SMTP();
+		$result = $smtp->validate($email, $debug_mode);
 		unset($smtp);
 		return $result;
 	}
@@ -93,7 +94,7 @@ class Validator {
 		return $this->valid_emails;
 	}
 
-	public function startValidation($email) {
+	public function startValidation($email, $debug_mode) {
 		$result = [
 			"email" => [],
 			"domain" => [],
@@ -103,7 +104,7 @@ class Validator {
 		$result["email"] = $email;
 		$result["domain"] = explode("@", $email)[1];
 		if ($this->validateDomainRegex($result["domain"])) {
-			$result["valid"] = $this->validateEmailSMTP($email);
+			$result["valid"] = $this->validateEmailSMTP($email, $debug_mode);
 			if ($result["valid"]) {
 				$this->valid_emails[] = $email;
 				$result["message"] = "Valid email Address";
@@ -114,5 +115,9 @@ class Validator {
 			$result["message"] = "Invalid domain pattern";
 		}
 		return $result;
+	}
+
+	public function debug($email) {
+		$this->validate($email, true);
 	}
 }

@@ -117,7 +117,6 @@ class SMTP {
 		//Starting socket connection to read
 		$mx_count = 0;
 		while ($this->mx_records[$mx_count]) {
-			$mx_count++;
 			if ($this->debug_mode) {
 				echo "\n Connecting to : \t " . $this->mx_records[$mx_count]['host'] . ":" . $this->port;
 			}
@@ -131,9 +130,13 @@ class SMTP {
 				stream_set_timeout($this->socket, $this->read_timeout);
 				break;
 			}
+			$mx_count++;
+			if (!isset($this->mx_records[$mx_count])) {
+				goto talk;
+			}
 		}
 		//Reading response from socket
-		if ($this->socket) {
+		talk:if ($this->socket) {
 			$reply_message = fread($this->socket, 2082);
 			if ($this->debug_mode) {
 				echo "\n Reply: \t $reply_message \n";
