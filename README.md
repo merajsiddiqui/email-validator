@@ -1,18 +1,15 @@
 # Email Validator
 
-An email validation library written in PHP
+This email-validator library is to verify if a given email id exists or not without sending them an email. To verify the owner of the email id you have to send them a mail with some verification parameters.
 
 ## Getting Started
 
-This email-validator library is to verify if a given email id exists or not without sending them an email. To verify the owner of the email id you have to send them a mail with some verification parameters.
+Are you using any third party mail service to send mail to users or you have seen enormous fake email IDs by robots or some spammer, Now Validate the email ID if it exist or not before sending them mail. 
 
 ### Prerequisites
 
-
 ```
 PHP > 5.5
-getmmxr
-
 ```
 
 ### Installing
@@ -25,7 +22,6 @@ Clone Library
 git clone https://github.com/merajsiddiqui/email-validator.git
 ```
 Or install via composer 
-
 ```
 composer require merajsiddiqui/email-validator
 ```
@@ -57,11 +53,11 @@ if($result['valid']) {
 	echo "Congrats this email id exist";
 } else {
 	echo "Sorry we were unable to verify, You may retry or send them an email";	
+	//Debug Why we failed .. Create an issue on github if you find anything
+	$email_validator->debug($email_id);
 }
 
 ```
-
-
 
 ## Authors
 
