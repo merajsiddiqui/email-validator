@@ -14,10 +14,7 @@ PHP > 5.5
 
 ### Installing
 
-You can download or clone this library directly from github
-
-Clone Library
-
+Colne or download  from github , To clone 
 ```
 git clone https://github.com/merajsiddiqui/email-validator.git
 ```
@@ -32,31 +29,34 @@ composer require merajsiddiqui/email-validator
 `phpUnit` Unit Test has been written and performed. But i advise you to always run the test case before implenting in a big application or making it as a dependency.
 
 
-## Deployment and Running
+## Up nad Running
 
-An example has been provided in the examples folder. But lets get it up and running.
 
 ```
 <?php
 
+### If downloaded via composer.
 include dirname(__DIR__) . "/vendor/autoload.php";
 
+### Downloaded from github not using Composer.
+require dirname(__DIR__) . "/src/EmailValidator.php";
+
+
 use Email\Validator;
-
 $email_validator = new Validator();
-
 $email_id = "merajsiddiqui@outlook.com";
-
 $result = $email_validator->validate($email_id);
-
 if($result['valid']) {
 	echo "Congrats this email id exist";
 } else {
 	echo "Sorry we were unable to verify, You may retry or send them an email";	
-	//Debug Why we failed .. Create an issue on github if you find anything
+	/**
+	 * Debug Why we failed 
+	 * Create an issue on github if you find anything
+	 * Or mail at < merajsiddiqui@outlook.com >
+	 */
 	$email_validator->debug($email_id);
 }
-
 ```
 
 ## Authors
